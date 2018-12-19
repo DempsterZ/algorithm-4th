@@ -1,13 +1,14 @@
+import com.sun.javafx.print.PrintHelper;
+
 import java.util.Arrays;
 
 public class test {
-    public static void main(String[] args) {
-        System.out.println("Hello World");
 
-        int[] array = {8, 9, 1, 7, 2, 3, 5, 4, 6, 0};
+    public static void main(String[] args) {
+        int[] array = randomGeneration(10000);
         QuickSort(array, 0, array.length - 1);
         for (int i : array) {
-            System.out.println(i);
+            System.out.print(i+" ");
         }
 
     }
@@ -154,6 +155,18 @@ public class test {
         int temp = arr[i];
         arr[i] = arr[j];
         arr[j] = temp;
+    }
+
+    private static int[] randomGeneration(int n) {
+        if (n > 0) {
+            int[] arr = new int[n];
+            for (int i = 0; i < n; i++) {
+                arr[i] = (int) (Math.random() * n);
+            }
+            System.out.println("随机数生成完毕");
+            return arr;
+        }
+        return null;
     }
 
 
