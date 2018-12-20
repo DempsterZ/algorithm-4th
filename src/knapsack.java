@@ -1,41 +1,117 @@
+import java.util.Arrays;
+
 public class knapsack {
+
+
+    private static int count = 0;
+    private static int[][] memo;
+
+
     public static void main(String[] args) {
-        int[] w = {2, 2, 6, 5, 4}; //物品重量
-        int[] v = {6, 3, 5, 4, 6}; //物品价值
-        int c = 10;            //背包容量
-        int[] x = new int[5];  //记录物品装入情况，0表示不转入，1表示装入
-        x[0] = 1; //初始值表示第一个物品已装入背包
-        int[][] m = new int[5][c + 1];//需要维护的二维表，为了方便计算加入一列，其中第0列表示背包容量为0时背包的最大价值为0
-        /*
-         * 初始化第一行，即背包中装入第一件物品
-         * */
-        for (int j = 1; j <= c; j++) {
-            if (j >= w[0]) {
-                m[0][j] = v[0];
-            }
-        }
-        /*
-         * 背包中依次装入其他的物品
-         * */
-        for (int i = 1; i < 5; i++) {
-            for (int j = 1; j <= c; j++) {
-                if (j < w[i]) m[i][j] = m[i - 1][j]; //不装入背包
-                else {
-                    if (m[i - 1][j - w[i]] + v[i] > m[i - 1][j]) m[i][j] = m[i - 1][j - w[i]] + v[i]; //选择价值较大者
-                    else m[i][j] = m[i - 1][j];
+        int[] w = {5,4,6,3};
+        int[] v = {10,40,30,50};
+        System.out.println(knapsack0(w, v, 10));
+        System.out.println("count of bestValue() exec：" + count);
+    }
+
+    // 记忆化搜索
+    public static int knapsack0(int[] w, int[] v, int C) {
+        int n = w.length;
+        memo = new int[n][C + 1];
+        for(int i = 0;i<n;i++)
+            Arrays.fill(memo[i],-1);
+
+        return bestValue(w, v, n - 1, C);
+    }
+    private static int bestValue(int[] w, int[] v, int i, int C) {
+        count++;
+        if (i < 0 || C <= 0)
+            return 0;
+
+        if (memo[i][C] != -1) // 记忆化搜索
+            return memo[i][C];
+
+        int res = 0;
+        res = bestValue(w, v, i - 1, C);
+        if (C >= w[i])
+            res = Math.max(res, v[i] + bestValue(w, v, i - 1, C - w[i]));
+
+        return memo[i][C] = res;
+    }
+
+    // 动态规划，空间复杂度O(n * C)
+    public static int knapsack01(int[] w, int[] v, int C) {
+        int n = w.length;
+        int[][] memo = new int[n][C + 1];
+
+        if (n == 0 || C == 0)
+            return 0;
+
+        for (int j = 0; j <= C; j++)
+            memo[0][j] = (j >= w[0] ? v[0] : 0);
+
+        for (int i = 1; i < n; i++) {
+            for (int j = 0; j <= C; j++) {
+                memo[i][j] = memo[i - 1][j];
+                if (j >= w[i]) {
+                    memo[i][j] = Math.max(memo[i][j], v[i] + memo[i - 1][j - w[i]]);
                 }
             }
         }
-        System.out.println("背包的最大价值为：" + m[w.length - 1][c]);
-        for (int i = 4; i >= 1; i--) {
-            if (m[i][c] > m[i - 1][c]) {
-                x[i] = 1; //装入背包
-                c -= w[i]; //物品i装入背包之前背包的容量
-            } else x[i] = 0; //没有装入背包
-        }
-        System.out.print("装入背包的物品编号是：");
-        for (int i = 0; i < 5; i++) {
-            if (x[i] == 1) System.out.printf("%2d", (i + 1));
-        }
+
+        return memo[n - 1][C];
+    }
+
+    // 动态规划，空间复杂度O(n * 2)
+    public static int knapsack02(int[] w, int[] v, int C){
+
+        if(w == null || v == null || w.length != v.length)
+            throw new IllegalArgumentException("Invalid w or v");
+
+        if(C < 0)
+            throw new IllegalArgumentException("C must be greater or equal to zero.");
+
+        int n = w.length;
+        if(n == 0 || C == 0)
+            return 0;
+
+        int[][] memo = new int[2][C + 1];
+
+        for(int j = 0 ; j <= C ; j ++)
+            memo[0][j] = (j >= w[0] ? v[0] : 0);
+
+        for(int i = 1 ; i < n ; i ++)
+            for(int j = 0 ; j <= C ; j ++){
+                memo[i % 2][j] = memo[(i-1) % 2][j];
+                if(j >= w[i])
+                    memo[i % 2][j] = Math.max(memo[i % 2][j], v[i] + memo[(i-1) % 2][j - w[i]]);
+            }
+
+        return memo[(n-1) % 2][C];
+    }
+
+    // 动态规划，空间复杂度O(n)
+    public static int knapsack03(int[] w, int[] v, int C){
+
+        if(w == null || v == null || w.length != v.length)
+            throw new IllegalArgumentException("Invalid w or v");
+
+        if(C < 0)
+            throw new IllegalArgumentException("C must be greater or equal to zero.");
+
+        int n = w.length;
+        if(n == 0 || C == 0)
+            return 0;
+
+        int[] memo = new int[C+1];
+
+        for(int j = 0 ; j <= C ; j ++)
+            memo[j] = (j >= w[0] ? v[0] : 0);
+
+        for(int i = 1 ; i < n ; i ++)
+            for(int j = C ; j >= w[i] ; j --)
+                memo[j] = Math.max(memo[j], v[i] + memo[j - w[i]]);
+
+        return memo[C];
     }
 }
